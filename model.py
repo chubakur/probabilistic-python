@@ -16,7 +16,7 @@ def model():
     return [a, b, c, d]
 
 if __name__ == '__main__':
-    count = 10000
+    count = 100
     begin = time()
     samples_rejection = repeat(partial(rejection_query, model, lambda x: x[3] >= 2, lambda x: x[0]), count)
     delta = time() - begin
@@ -25,7 +25,6 @@ if __name__ == '__main__':
     samples_mh = mh_query(model, lambda x: x[3] >= 2, lambda x: x[0], count)
     delta = time() - begin
     print 'MH-query:', delta
-    print delta
     plot.figure(1)
     plot.hist(samples_rejection)
     plot.figure(2)

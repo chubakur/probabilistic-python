@@ -178,7 +178,7 @@ def sample(erp, *params):
     :return:
     """
     if mh.mh_flag:
-        return mh.sampler(erp, *params)
+        return mh.trace_update(erp, *params)
     return erp.sample(*params)
 
 

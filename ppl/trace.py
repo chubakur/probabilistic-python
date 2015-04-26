@@ -44,6 +44,14 @@ class Trace:
             return self.mem[name]
         return None
 
+    def names(self):
+        """
+        Return all stored names
+        :return:
+        :rtype: list
+        """
+        return self.mem.keys()
+
     def store(self, name, chunk):
         """
         Store result of evaluation
