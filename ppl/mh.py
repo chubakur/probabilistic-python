@@ -1,9 +1,12 @@
 from trace import Trace
-from interpretator import *
 
 
 def trace_update():
     pass
+
+
+def make_stochastic_step(model):
+    model()
 
 
 def mh_query(model, count):
@@ -21,12 +24,5 @@ def mh_query(model, count):
     samples = []
     execute_queue = model[0:-2]
     while len(samples) < count:
-        for idx, execute_agent in enumerate(execute_queue):
-            if 'flip' in execute_agent:
-                if trace.get(str(idx)):
-                    pass
-                else:
-                    pass
-
-        break
+        pass
     return samples

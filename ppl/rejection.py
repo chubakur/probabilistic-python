@@ -1,4 +1,4 @@
-from interpretator import *
+from ppl.interpretator import *
 
 
 def rejection_query(model, predicat, answer):

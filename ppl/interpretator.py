@@ -1,6 +1,3 @@
-from erp import flip, uniform, gaussian
-
-
 def interpreter(_model, mh=False):
     """
     Execute the model, and return a scope

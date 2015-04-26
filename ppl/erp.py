@@ -48,7 +48,7 @@ class ERP:
 class FlipERP(ERP):
     def __init__(self):
         def _generator(p=0.5):
-            return numpy.random.uniform(0, 1) <= p
+            return 1 if numpy.random.uniform(0, 1) <= p else 0
         self._generator = _generator
 
 
@@ -85,6 +85,72 @@ class PoissonERP(ERP):
         self._generator = numpy.random.poisson
 
 
+class StochasticValue:
+    def __init__(self, value):
+        assert isinstance(value, (int, float))
+        self._value = value
+
+    def value(self):
+        return self._value
+
+    def __eq__(self, other):
+        if isinstance(other, (int, float)):
+            return self.value() == other
+        elif isinstance(other, StochasticValue):
+            return self.value() == other.value()
+
+    def __gt__(self, other):
+        if isinstance(other, (int, float)):
+            return self.value() > other
+        elif isinstance(other, StochasticValue):
+            return self.value() > other.value()
+
+    def __ge__(self, other):
+        return self > other or self == other
+
+    def __lt__(self, other):
+        return not (self > other) and self != other
+
+    def __le__(self, other):
+        return self < other or self == other
+
+    def __add__(self, other):
+        if isinstance(other, (int, float)):
+            return StochasticValue(self.value() + other)
+        elif isinstance(other, StochasticValue):
+            return StochasticValue(self.value() + other.value())
+        elif isinstance(other, FixedERP):
+            return StochasticValue(self._value + other.sample()._value)
+
+
+class FixedERP():
+    def __init__(self, erp, params):
+        """
+        :param erp:
+        :type erp: ERP
+        """
+        self.erp = erp
+        self.params = params
+        self.value = None
+
+    def sample(self):
+        if not self.value:
+            self.value = StochasticValue(self.erp.sample(*self.params))
+        return self.value
+
+    def __float__(self):
+        return self.sample()
+
+    def __int__(self):
+        return self.sample()
+
+    def __add__(self, other):
+        if isinstance(other, FixedERP):
+            return self.sample() + other.sample()
+        elif isinstance(other, int) or isinstance(other, float):
+            return self.sample() + other
+
+
 def sample(erp, *params):
     """
     Generate sample from ERP
@@ -95,11 +161,16 @@ def sample(erp, *params):
     """
     return erp.sample(*params)
 
+
+# def flip(p=0.5):
+#     return FixedERP(FlipERP(), [p])
+#
+#
+# def uniform(low=0., high=1.):
+#     return FixedERP(UniformERP(), [low, high])
+
 flip = partial(sample, FlipERP())
 uniform = partial(sample, UniformERP())
-gaussian = partial(sample, GaussianERP())
-beta = partial(sample, BetaERP())
-poisson = partial(sample, PoissonERP())
 
 
 if __name__ == '__main__':
