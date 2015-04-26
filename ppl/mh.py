@@ -1,3 +1,4 @@
+# coding: utf-8
 import inspect
 from trace import Trace, Chunk
 from math import log
@@ -71,7 +72,7 @@ def mh_query(model, pred, val, samples_count):
     global mh_flag, trace
     mh_flag = True
     samples = []
-    [model() for i in range(0, 10)]
+    [model() for i in range(0, 100)]
     while len(samples) < samples_count:
         variables = trace.names()
         index = random.randint(0, len(variables) - 1)
@@ -81,12 +82,15 @@ def mh_query(model, pred, val, samples_count):
         new_value = erp.proposal_kernel(current.x, *erp_params)
         f = erp.log_proposal_prob(new_value, *erp_params)
         r = erp.log_proposal_prob(current.x, *erp_params)
+        # r и f для flip == 0
         # l = erp.log_likelihood(new_value, *erp_params)
         n_trace = deepcopy(trace)
         n_trace.store(selected_name, Chunk(erp, new_value, erp_params))
         old_trace = trace
         trace = n_trace
         sample = model()
+        # if pred(sample):
+        #     samples.append(val(sample))
         trace = old_trace
         new_likelihood = n_trace.likelihood()
         old_likelihood = trace.likelihood()

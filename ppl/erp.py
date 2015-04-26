@@ -81,6 +81,23 @@ class UniformERP(ERP):
             return 1/(b - a)
         return 0
 
+    def proposal_kernel(self, x, *parameters):
+        return self.sample(*parameters)
+
+    def log_proposal_prob(self, x, *parameters):
+        return self.log_likelihood(x, *parameters)
+
+    def log_likelihood(self, x, *parameters):
+        if len(parameters) == 2:
+            a, b = parameters
+        elif len(parameters) == 1:
+            a, b = parameters[0], 1
+        else:
+            a, b = 0, 1
+        if a <= x <= b:
+            return -log(b - a)
+        return -float("inf")
+
 
 class GaussianERP(ERP):
     def __init__(self):
