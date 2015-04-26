@@ -81,14 +81,20 @@ def mh_query(model, pred, val, samples_count):
         new_value = erp.proposal_kernel(current.x, *erp_params)
         f = erp.log_proposal_prob(new_value, *erp_params)
         r = erp.log_proposal_prob(current.x, *erp_params)
-        l = erp.log_likelihood(new_value, *erp_params)
+        # l = erp.log_likelihood(new_value, *erp_params)
         n_trace = deepcopy(trace)
         n_trace.store(selected_name, Chunk(erp, new_value, erp_params))
+        old_trace = trace
+        trace = n_trace
         sample = model()
-        if log(uniform()) < n_trace.likelihood() - trace.likelihood() + r - f:
+        trace = old_trace
+        new_likelihood = n_trace.likelihood()
+        old_likelihood = trace.likelihood()
+        probability = log(uniform())
+        if probability < new_likelihood - old_likelihood + r - f:
             if pred(sample):
                 # print sample
                 samples.append(val(sample))
-            trace = n_trace
+        trace = n_trace
 
     return samples

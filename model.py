@@ -16,7 +16,7 @@ def model():
     return [a, b, c, d]
 
 if __name__ == '__main__':
-    count = 100
+    count = 1000
     begin = time()
     samples_rejection = repeat(partial(rejection_query, model, lambda x: x[3] >= 2, lambda x: x[0]), count)
     delta = time() - begin
