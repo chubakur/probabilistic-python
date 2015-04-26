@@ -1,6 +1,6 @@
 import inspect
 import warnings
-from erp import ERP
+from copy import deepcopy
 
 
 class Chunk:
@@ -54,6 +54,17 @@ class Trace:
         """
         self.mem[name] = chunk
 
+    def likelihood(self):
+        """
+        Return sum of likelihood of each stochastic variable
+        :return: likelihood
+        :rtype: float
+        """
+        _ll = 0
+        for name, chunk in self.mem.items():
+            _ll += chunk.erp.log_likelihood(chunk.x, *chunk.erp_parameters)
+        return _ll
+
 
 def trace_update(_trace):
     """
@@ -63,7 +74,9 @@ def trace_update(_trace):
     :return: Updated trace object
     :rtype: Trace
     """
-    return _trace
+    _new_trace = deepcopy(_trace)
+    # TODO: WTF???
+    return _new_trace
 
 
 trace = Trace()

@@ -2,7 +2,8 @@ import numpy.random
 from utils import repeat
 from matplotlib import pyplot as plot
 from functools import partial
-from math import sqrt, exp, pi
+from math import sqrt, exp, pi, log
+import mh
 
 
 class ERP:
@@ -44,12 +45,28 @@ class ERP:
         """
         raise Exception("Proposal kernel function for %s does not set" % self.__class__.__name__)
 
+    def log_proposal_prob(self, x, *parameters):
+        raise Exception("Log proposal prob function for %s does not set" % self.__class__.__name__)
+
+    def log_likelihood(self, x, *parameters):
+        return log(self.likelihood(x, *parameters))
+
 
 class FlipERP(ERP):
     def __init__(self):
         def _generator(p=0.5):
             return 1 if numpy.random.uniform(0, 1) <= p else 0
         self._generator = _generator
+
+    def proposal_kernel(self, x, *parameters):
+        return 0 if x else 1
+
+    def log_proposal_prob(self, x, *parameters):
+        return 0
+
+    def likelihood(self, x, *parameters):
+        probability = parameters[0]
+        return probability if x else (1 - probability)
 
 
 class UniformERP(ERP):
@@ -159,6 +176,8 @@ def sample(erp, *params):
     :param params:
     :return:
     """
+    if mh.mh_flag:
+        return mh.sampler(erp, *params)
     return erp.sample(*params)
 
 
