@@ -60,6 +60,7 @@ class FlipERP(ERP):
 
     def proposal_kernel(self, x, *parameters):
         return 0 if x else 1
+        # return self.sample(*parameters)
 
     def log_proposal_prob(self, x, *parameters):
         return 0

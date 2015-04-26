@@ -77,6 +77,3 @@ def trace_update(_trace):
     _new_trace = deepcopy(_trace)
     # TODO: WTF???
     return _new_trace
-
-
-trace = Trace()

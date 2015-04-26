@@ -1,9 +1,12 @@
 import inspect
-from trace import trace, Chunk, trace_update
+from trace import Trace, Chunk, trace_update
 from math import log
 from numpy.random import uniform
+from copy import deepcopy
 
 mh_flag = False
+trace = Trace()
+previous_trace = None
 
 
 def sampler(erp, *params):
@@ -40,12 +43,17 @@ def mh_query(model, pred, val, samples_count):
     :return: samples
     :rtype: list
     """
-    global mh_flag
+    global mh_flag, previous_trace, trace
     mh_flag = True
     samples = []
+    [model() for i in range(0, 100)]
     while len(samples) < samples_count:
         sample = model()
         if pred(sample):
             samples.append(val(sample))
+        #     previous_trace = deepcopy(trace)
+        # else:
+        #     if previous_trace:
+        #         trace = previous_trace
     mh_flag = False
     return samples
