@@ -73,7 +73,6 @@ class Trace:
         self.mem[name] = self.mem[name][0], iteration
 
     def clean(self, iteration):
-        self._likelihood = 0.
         for k in self.mem.keys():
             if self.mem[k][1] < iteration:
                 del self.mem[k]
