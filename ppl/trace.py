@@ -93,15 +93,3 @@ class Trace:
         for k in self.mem.keys():
             if self.mem[k][1] < iteration:
                 del self.mem[k]
-
-    def likelihood(self):
-        """
-        Return sum of likelihood of each stochastic variable
-        :return: likelihood
-        :rtype: float
-        """
-        # TODO: rewrite
-        _ll = 0
-        for name, chunk in self.mem.items():
-            _ll += chunk.erp.log_likelihood(chunk.x, *chunk.erp_parameters)
-        return _ll

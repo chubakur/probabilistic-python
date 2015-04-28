@@ -26,29 +26,46 @@ def model2():
     d = a + b + c
     return d
 
+
+def model3():
+    # if uniform() < 0.5:
+    #     a = gaussian(10, 1)
+    # else:
+    #     a = uniform(0, 10)
+    # b = gaussian(20, 1)
+    b = uniform(0, 10)
+    return b
+    # return a * b + a
+
 if __name__ == '__main__':
-    # условия очистки. считать кол-во итераций, и обновлять у трейса номер итерации. у кого не совпал - в топку.
-    # ppl.mh.mh_flag = True
-    # for i in xrange(0, 100):
-    #     print model()
-    # exit()
-    count = 100
+    _model = model3
     begin = time()
-    samples_rejection = repeat(partial(rejection_query, model2, lambda x: True, lambda x: x), 100000)
+    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 50000)
+    delta = time() - begin
+    print 'Rejection-query-min:', delta
+    begin = time()
+    samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000000)
     delta = time() - begin
     print 'Rejection-query:', delta
     begin = time()
-    samples_mh = mh_query(model2, lambda x: True, lambda x: x, 10000)
+    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 50000, 1)
     delta = time() - begin
     print 'MH-query:', delta
-    begin = time()
-    samples_mh2 = mh_query2(model2, lambda x: True, lambda x: x, 10000)
-    delta = time() - begin
-    print 'MH-query2:', delta
+    # begin = time()
+    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 1000, 10)
+    # delta = time() - begin
+    # print 'MH-query2:', delta
+    bins = 50
     plot.figure(1)
-    plot.hist(samples_rejection)
+    plot.title("RQmin")
+    plot.hist(samples_rejection_min, bins=bins)
     plot.figure(2)
-    plot.hist(samples_mh)
+    plot.title("RQ")
+    plot.hist(samples_rejection, bins=bins)
     plot.figure(3)
-    plot.hist(samples_mh2)
+    plot.title("Gibbs")
+    plot.hist(samples_mh, bins=bins)
+    # plot.figure(4)
+    # plot.title("MHQ")
+    # plot.hist(samples_mh2, bins=bins)
     plot.show()
