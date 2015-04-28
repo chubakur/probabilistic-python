@@ -4,7 +4,8 @@ from trace import Trace, Chunk
 from math import log
 from numpy.random import uniform
 from copy import deepcopy
-import random
+import numpy
+import numpy.random
 
 mh_flag = False
 iteration = 0
@@ -38,7 +39,7 @@ def trace_update(erp, *params):
         return x
 
 
-def mh_query(model, pred, val, samples_count):
+def mh_query(model, pred, val, samples_count, lag=1):
     """
     Metropolis-Hastings algorithm for sampling
     :param model: model to execute
@@ -49,8 +50,13 @@ def mh_query(model, pred, val, samples_count):
     """
     global mh_flag, trace, iteration
     mh_flag = True
+    iteration = 0
     samples = []
-    [model() for i in range(0, 100)]
+    for i in range(0, 100):
+        trace._likelihood = 0
+        trace.clean(iteration)
+        iteration += 1
+        model()
     prev_name_idx = 0
     transitions = 0
     while len(samples) < samples_count:
@@ -74,11 +80,55 @@ def mh_query(model, pred, val, samples_count):
         sample = model()
         trace = old_trace
         probability = log(uniform())
-        print new_trace._likelihood, old_trace._likelihood
+        # print new_trace._likelihood, old_trace._likelihood
         if probability < new_trace._likelihood - old_trace._likelihood + r - f:
             transitions += 1
-            if (transitions % 1) == 0:
-                print len(samples)
+            if (transitions % lag) == 0:
+                # print len(samples)
+                samples.append(val(sample))
+            trace = new_trace
+            trace.clean(iteration)
+
+    return samples
+
+
+def mh_query2(model, pred, val, samples_count, lag=1):
+    """
+    Metropolis-Hastings algorithm for sampling
+    :param model: model to execute
+    :param samples_count: how much samples we want
+    :type samples_count: int
+    :return: samples
+    :rtype: list
+    """
+    global mh_flag, trace, iteration
+    mh_flag = True
+    iteration = 0
+    samples = []
+    for i in range(0, 100):
+        trace._likelihood = 0
+        trace.clean(iteration)
+        iteration += 1
+        model()
+    transitions = 0
+    while len(samples) < samples_count:
+        iteration += 1
+        new_trace = deepcopy(trace)
+        variables = trace.get_vector()
+        vector = variables.values()
+        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag([0.01] * len(vector)))
+        new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
+        old_trace = trace
+        trace = new_trace
+        new_trace._likelihood = 0
+        sample = model()
+        trace = old_trace
+        probability = log(uniform())
+        # print new_trace._likelihood, old_trace._likelihood
+        if probability < new_trace._likelihood - old_trace._likelihood:
+            transitions += 1
+            if (transitions % lag) == 0:
+                # print len(samples)
                 samples.append(val(sample))
             trace = new_trace
             trace.clean(iteration)

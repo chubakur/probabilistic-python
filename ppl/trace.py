@@ -53,6 +53,23 @@ class Trace:
         """
         return self.mem.keys()
 
+    def get_vector(self):
+        """
+
+        :return:
+        :rtype: dict
+        """
+        result = dict()
+        for name, chunk in self.mem.items():
+            result[name] = chunk[0].x
+        return result
+
+    def set_vector(self, vector, iteration):
+        for name, value in vector.items():
+            chunk, _ = self.mem[name]
+            self.mem[name] = chunk, iteration
+            chunk.x = value
+
     def store(self, name, chunk, iteration=0):
         """
         Store result of evaluation
