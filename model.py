@@ -38,7 +38,7 @@ if __name__ == '__main__':
     delta = time() - begin
     print 'Rejection-query:', delta
     begin = time()
-    samples_mh = mh_query(model, lambda x: True, lambda x: x, 1000)
+    samples_mh = mh_query(model, lambda x: True, lambda x: x, 10000)
     delta = time() - begin
     print 'MH-query:', delta
     plot.figure(1)

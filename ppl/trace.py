@@ -20,6 +20,7 @@ class Chunk:
 class Trace:
     def __init__(self):
         self.mem = dict()
+        self._likelihood = 0.
 
     def get_name(self):
         """
@@ -41,7 +42,7 @@ class Trace:
         :rtype: Chunk or None
         """
         if name in self.mem:
-            return self.mem[name]
+            return self.mem[name][0]
         return None
 
     def names(self):
@@ -52,7 +53,7 @@ class Trace:
         """
         return self.mem.keys()
 
-    def store(self, name, chunk):
+    def store(self, name, chunk, iteration=0):
         """
         Store result of evaluation
         :param name: name
@@ -60,7 +61,22 @@ class Trace:
         :param chunk: result
         :type chunk: Chunk
         """
-        self.mem[name] = chunk
+        self.mem[name] = chunk, iteration
+
+    def update(self, name, iteration):
+        """
+        Update last_access_iter number
+        :param name:
+        :param iteration:
+        :return:
+        """
+        self.mem[name] = self.mem[name][0], iteration
+
+    def clean(self, iteration):
+        self._likelihood = 0.
+        for k in self.mem.keys():
+            if self.mem[k][1] < iteration:
+                del self.mem[k]
 
     def likelihood(self):
         """
@@ -68,20 +84,8 @@ class Trace:
         :return: likelihood
         :rtype: float
         """
+        # TODO: rewrite
         _ll = 0
         for name, chunk in self.mem.items():
             _ll += chunk.erp.log_likelihood(chunk.x, *chunk.erp_parameters)
         return _ll
-
-
-def trace_update(_trace):
-    """
-    Function which update trace
-    :param _trace: trace object
-    :type _trace: Trace
-    :return: Updated trace object
-    :rtype: Trace
-    """
-    _new_trace = deepcopy(_trace)
-    # TODO: WTF???
-    return _new_trace
