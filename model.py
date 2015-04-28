@@ -1,3 +1,4 @@
+# coding: utf-8
 from ppl.erp import *
 from ppl.utils import repeat
 from ppl.rejection import *
@@ -5,6 +6,7 @@ from matplotlib import pyplot as plot
 from functools import partial
 from ppl.mh import mh_query
 from time import time
+import ppl.mh
 
 
 def model():
@@ -13,7 +15,7 @@ def model():
     b = flip(threshold)
     c = flip(threshold)
     d = a + b + c
-    return [a, b, c, d]
+    return d
 
 
 def model2():
@@ -25,13 +27,18 @@ def model2():
     return [a, b, c, d]
 
 if __name__ == '__main__':
+    # условия очистки. считать кол-во итераций, и обновлять у трейса номер итерации. у кого не совпал - в топку.
+    # ppl.mh.mh_flag = True
+    # for i in xrange(0, 100):
+    #     print model()
+    # exit()
     count = 100
     begin = time()
-    samples_rejection = repeat(partial(rejection_query, model2, lambda x: x[3] >= 2, lambda x: x[0]), count)
+    samples_rejection = repeat(partial(rejection_query, model, lambda x: True, lambda x: x), 10000)
     delta = time() - begin
     print 'Rejection-query:', delta
     begin = time()
-    samples_mh = mh_query(model2, lambda x: x[3] >= 2, lambda x: x[0], count)
+    samples_mh = mh_query(model, lambda x: True, lambda x: x, 1000)
     delta = time() - begin
     print 'MH-query:', delta
     plot.figure(1)

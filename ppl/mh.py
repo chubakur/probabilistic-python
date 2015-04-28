@@ -73,10 +73,13 @@ def mh_query(model, pred, val, samples_count):
     mh_flag = True
     samples = []
     [model() for i in range(0, 100)]
+    prev_name_idx = 0
+    transitions = 0
     while len(samples) < samples_count:
         variables = trace.names()
-        index = random.randint(0, len(variables) - 1)
-        selected_name = variables[index]
+        # index = random.randint(0, len(variables) - 1)
+        selected_name = variables[prev_name_idx % len(trace.names())]
+        prev_name_idx += 1
         current = trace.get(selected_name)
         erp, erp_params = current.erp, current.erp_parameters
         new_value = erp.proposal_kernel(current.x, *erp_params)
@@ -96,9 +99,13 @@ def mh_query(model, pred, val, samples_count):
         old_likelihood = trace.likelihood()
         probability = log(uniform())
         if probability < new_likelihood - old_likelihood + r - f:
-            if pred(sample):
-                # print sample
+            transitions += 1
+            if (transitions % 1) == 0:
+                print len(samples)
                 samples.append(val(sample))
-        trace = n_trace
+            # print sample
+            # if pred(sample):
+            #     # print sample
+            trace = n_trace
 
     return samples
