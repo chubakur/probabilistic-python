@@ -37,13 +37,13 @@ def model3():
 
 
 def model4():
-    a = 0.7 if flip() else 0.1
-    b = flip(a)
+    a = 0.7 if flip(name="m4a") else 0.1
+    b = flip(a, name="m4b")
     return b
 
 
-def flip(a=0.5):
-    return uniform() < a
+def flip(a=0.5, **kwargs):
+    return uniform(**kwargs) < a
 
 
 if __name__ == '__main__':
@@ -53,11 +53,14 @@ if __name__ == '__main__':
     delta = time() - begin
     print 'Rejection-query-min:', delta
     begin = time()
-    samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 5000)
+    samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
     delta = time() - begin
     print 'Rejection-query:', delta
     begin = time()
-    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 10000, 1)
+    # import cProfile
+    # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
+    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 1000, 1)
+    # samples_mh = [1, 2]
     delta = time() - begin
     print 'MH-query:', delta
     # begin = time()

@@ -3,7 +3,7 @@ import inspect
 from trace import Trace, Chunk
 from math import log
 from numpy.random import uniform
-from copy import deepcopy
+from copy import copy as deepcopy
 import numpy
 import numpy.random
 
@@ -13,7 +13,7 @@ trace = Trace()
 drift = 0.01
 
 
-def trace_update(erp, *params):
+def trace_update(erp, name, *params):
     """
     Calls when ERP attemps to make sample
     :param erp:
@@ -21,13 +21,15 @@ def trace_update(erp, *params):
     :return:
     """
     global trace, iteration
-    stack = inspect.stack()
-    for index, stack_call in enumerate(stack):
-        frame, fname, line, module, code, idx = stack_call
-        if module == 'mh_query':
-            break
-    frame, fname, line, module, code, idx = stack[index - 1]
-    code_name = "%s%d" % (module, line)
+    code_name = name
+    if not code_name:
+        stack = inspect.stack()
+        for index, stack_call in enumerate(stack):
+            frame, fname, line, module, code, idx = stack_call
+            if module == 'mh_query':
+                break
+        frame, fname, line, module, code, idx = stack[index - 1]
+        code_name = "%s%d" % (module, line)
     previous = trace.get(code_name)
     if previous:
         if previous.erp_parameters == params:
@@ -92,7 +94,7 @@ def mh_query(model, pred, val, samples_count, lag=1):
         if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb:
             transitions += 1
             if (transitions % lag) == 0:
-                print len(samples), sample, new_trace._likelihood, rejected
+                # print len(samples), sample, new_trace._likelihood, rejected
                 samples.append(val(sample))
             rejected = 0
             trace = new_trace

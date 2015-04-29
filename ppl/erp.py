@@ -186,7 +186,7 @@ class FixedERP():
             return self.sample() + other
 
 
-def sample(erp, *params):
+def sample(erp, name=None, *params):
     """
     Generate sample from ERP
     :param erp:
@@ -195,7 +195,7 @@ def sample(erp, *params):
     :return:
     """
     if mh.mh_flag:
-        return mh.trace_update(erp, *params)
+        return mh.trace_update(erp, name, *params)
     return erp.sample(*params)
 
 
