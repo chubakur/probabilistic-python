@@ -49,7 +49,7 @@ def flip(a=0.5, **kwargs):
 if __name__ == '__main__':
     _model = model4
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 10000)
+    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
     delta = time() - begin
     print 'Rejection-query-min:', delta
     begin = time()
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     begin = time()
     # import cProfile
     # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 1000, 1)
+    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 1000, 50)
     # samples_mh = [1, 2]
     delta = time() - begin
     print 'MH-query:', delta
@@ -69,10 +69,10 @@ if __name__ == '__main__':
     # print 'MH-query2:', delta
     bins = 50
     plot.figure(1)
-    plot.title("RQmin")
+    plot.title("IDEAL")
     plot.hist(samples_rejection_min, bins=bins)
     plot.figure(2)
-    plot.title("RQ")
+    plot.title("RQmin")
     plot.hist(samples_rejection, bins=bins)
     plot.figure(3)
     plot.title("Gibbs")

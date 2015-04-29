@@ -18,9 +18,13 @@ class Chunk:
 
 
 class Trace:
-    def __init__(self):
-        self.mem = dict()
-        self._likelihood = 0.
+    def __init__(self, trace=None):
+        if not trace:
+            self.mem = dict()
+            self._likelihood = 0.
+        else:
+            self._likelihood = 0.
+            self.mem = dict(trace.mem)
 
     def get_name(self):
         """

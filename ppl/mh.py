@@ -3,7 +3,6 @@ import inspect
 from trace import Trace, Chunk
 from math import log
 from numpy.random import uniform
-from copy import copy as deepcopy
 import numpy
 import numpy.random
 
@@ -82,11 +81,11 @@ def mh_query(model, pred, val, samples_count, lag=1):
         rvsProb = erp.log_proposal_prob(new_value, current.x, *erp_params)
         # r и f для flip == 0
         # l = erp.log_likelihood(new_value, *erp_params)
-        new_trace = deepcopy(trace)
+        # new_trace = deepcopy(trace)
+        new_trace = Trace(trace)
         new_trace.store(selected_name, Chunk(erp, new_value, erp_params), iteration)
         old_trace = trace
         trace = new_trace
-        new_trace._likelihood = 0
         sample = model()
         trace = old_trace
         probability = log(uniform())
