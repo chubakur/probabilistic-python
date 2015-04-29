@@ -106,7 +106,7 @@ class GaussianERP(ERP):
         return self.log_likelihood(_to, *([_from] + list(parameters[1:])))
 
     def log_likelihood(self, x, *parameters):
-
+        mu, sigma = parameters if parameters else self._default_parameters
         return -0.5 * (1.8378770664093453 + 2 * log(sigma) + (x - mu) ** 2 / (sigma ** 2))
 
 

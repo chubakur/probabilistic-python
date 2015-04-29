@@ -10,7 +10,7 @@ import numpy.random
 mh_flag = False
 iteration = 0
 trace = Trace()
-drift = 0.1
+drift = 0.01
 
 
 def trace_update(erp, *params):
@@ -87,7 +87,7 @@ def mh_query(model, pred, val, samples_count, lag=1):
         if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb:
             transitions += 1
             if (transitions % lag) == 0:
-                # print len(samples), sample, new_trace._likelihood
+                print len(samples), sample, new_trace._likelihood
                 samples.append(val(sample))
             trace = new_trace
             trace.clean(iteration)
@@ -119,7 +119,7 @@ def mh_query2(model, pred, val, samples_count, lag=1):
         new_trace = deepcopy(trace)
         variables = trace.get_vector()
         vector = variables.values()
-        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag([0.1] * len(vector)))
+        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag([drift] * len(vector)))
         new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
         old_trace = trace
         trace = new_trace
@@ -127,7 +127,7 @@ def mh_query2(model, pred, val, samples_count, lag=1):
         sample = model()
         trace = old_trace
         probability = log(uniform())
-        # print new_trace._likelihood, old_trace._likelihood
+        # r = erp.log_proposal_prob()
         if probability < new_trace._likelihood - old_trace._likelihood:
             transitions += 1
             if (transitions % lag) == 0:

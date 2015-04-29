@@ -28,19 +28,23 @@ def model2():
 
 
 def model3():
-    # if uniform() < 0.5:
-    #     a = gaussian(10, 1)
-    # else:
-    #     a = uniform(0, 10)
-    # b = gaussian(20, 1)
+    if uniform() < 0.5:
+        a = gaussian(10, 1)
+    else:
+        a = uniform(0, 10)
+    b = gaussian(20, 1)
+    return a * b + a
+
+
+def model4():
     b = uniform(0, 10)
     return b
-    # return a * b + a
+
 
 if __name__ == '__main__':
     _model = model3
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 50000)
+    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 10000)
     delta = time() - begin
     print 'Rejection-query-min:', delta
     begin = time()
@@ -48,11 +52,11 @@ if __name__ == '__main__':
     delta = time() - begin
     print 'Rejection-query:', delta
     begin = time()
-    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 50000, 1)
+    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 10000, 10)
     delta = time() - begin
     print 'MH-query:', delta
     # begin = time()
-    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 1000, 10)
+    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 1)
     # delta = time() - begin
     # print 'MH-query2:', delta
     bins = 50
