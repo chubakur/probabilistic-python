@@ -37,26 +37,31 @@ def model3():
 
 
 def model4():
-    b = uniform(0, 10)
+    a = 0.7 if flip() else 0.1
+    b = flip(a)
     return b
 
 
+def flip(a=0.5):
+    return uniform() < a
+
+
 if __name__ == '__main__':
-    _model = model3
+    _model = model4
     begin = time()
     samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 10000)
     delta = time() - begin
     print 'Rejection-query-min:', delta
     begin = time()
-    samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000000)
+    samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 5000)
     delta = time() - begin
     print 'Rejection-query:', delta
     begin = time()
-    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 10000, 10)
+    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 10000, 1)
     delta = time() - begin
     print 'MH-query:', delta
     # begin = time()
-    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 1)
+    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 100)
     # delta = time() - begin
     # print 'MH-query2:', delta
     bins = 50

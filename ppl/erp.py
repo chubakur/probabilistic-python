@@ -206,7 +206,7 @@ def sample(erp, *params):
 # def uniform(low=0., high=1.):
 #     return FixedERP(UniformERP(), [low, high])
 
-flip = partial(sample, FlipERP())
+# flip = partial(sample, FlipERP())
 uniform = partial(sample, UniformERP())
 gaussian = partial(sample, GaussianERP())
 

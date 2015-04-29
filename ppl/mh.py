@@ -22,7 +22,11 @@ def trace_update(erp, *params):
     """
     global trace, iteration
     stack = inspect.stack()
-    frame, fname, line, module, code, idx = stack[2]
+    for index, stack_call in enumerate(stack):
+        frame, fname, line, module, code, idx = stack_call
+        if module == 'mh_query':
+            break
+    frame, fname, line, module, code, idx = stack[index - 1]
     code_name = "%s%d" % (module, line)
     previous = trace.get(code_name)
     if previous:
@@ -61,6 +65,7 @@ def mh_query(model, pred, val, samples_count, lag=1):
         model()
     prev_name_idx = 0
     transitions = 0
+    rejected = 0
     while len(samples) < samples_count:
         iteration += 1
         variables = trace.names()
@@ -87,10 +92,13 @@ def mh_query(model, pred, val, samples_count, lag=1):
         if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb:
             transitions += 1
             if (transitions % lag) == 0:
-                print len(samples), sample, new_trace._likelihood
+                print len(samples), sample, new_trace._likelihood, rejected
                 samples.append(val(sample))
+            rejected = 0
             trace = new_trace
             trace.clean(iteration)
+        else:
+            rejected += 1
 
     return samples
 
