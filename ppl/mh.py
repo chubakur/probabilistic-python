@@ -10,7 +10,7 @@ import random
 mh_flag = False
 iteration = 0
 trace = Trace()
-drift = 0.01
+drift = 0.1
 
 
 def trace_update(erp, name, *params):

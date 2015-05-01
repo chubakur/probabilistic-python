@@ -67,7 +67,7 @@ if __name__ == '__main__':
     begin = time()
     # import cProfile
     # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, lambda x: x[3] >= 2, lambda x: x[0], 1000, 1)
+    samples_mh = mh_query(_model, lambda x: x[3] >= 2, lambda x: x[0], 1000, 10)
     # samples_mh = [1, 2]
     delta = time() - begin
     print 'MH-query:', delta
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 100)
     # delta = time() - begin
     # print 'MH-query2:', delta
-    bins = 5
+    bins = 2
     plot.figure(1)
     plot.title("IDEAL")
     plot.hist(samples_rejection_min, bins=bins)
