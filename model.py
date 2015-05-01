@@ -7,6 +7,9 @@ from functools import partial
 from ppl.mh import mh_query, mh_query2
 from time import time
 import ppl.mh
+# from embed.emb import import_mod
+
+# plot = import_mod('matplotlib.pyplot')
 
 
 def model():
@@ -16,6 +19,7 @@ def model():
     c = flip(threshold, name='m1c')
     d = a + b + c
     return [a, b, c, d]
+
 
 def model1Plus():
     threshold = 0.01
@@ -66,7 +70,8 @@ def geometric(p):
 if __name__ == '__main__':
     _model = model1Plus
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[4] >= 3, lambda x: x[0]), 1000)
+    # samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[4] >= 3, lambda x: x[0]), 1000)
+    samples_rejection_min = [1, 2]
     delta = time() - begin
     print 'Rejection-query-min:', delta
     # begin = time()

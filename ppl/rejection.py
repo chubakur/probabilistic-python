@@ -1,7 +1,8 @@
 from ppl.interpretator import *
 
-
+a = 0
 def rejection_query(model, predicat, answer):
+    global a
     """
     Simple rejection query implementation
     :param model:
@@ -12,6 +13,8 @@ def rejection_query(model, predicat, answer):
     while True:
         samples = model()
         if predicat(samples):
+            a += 1
+            print "\r%d" % a,
             return answer(samples)
 
 

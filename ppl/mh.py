@@ -60,7 +60,7 @@ def mh_query(model, pred, val, samples_count, lag=1):
     mh_flag = True
     iteration = 0
     samples = []
-    for i in range(0, 100):
+    for i in range(0, 1000):
         trace._likelihood = 0
         trace.clean(iteration)
         iteration += 1
