@@ -5,6 +5,7 @@ from math import log
 from numpy.random import uniform
 import numpy
 import numpy.random
+import random
 
 mh_flag = False
 iteration = 0
@@ -28,7 +29,7 @@ def trace_update(erp, name, *params):
             if module == 'mh_query':
                 break
         frame, fname, line, module, code, idx = stack[index - 1]
-        code_name = "%s%d" % (module, line)
+        code_name = "%s%s-%s%d+%d" % (erp.__class__.__name__, str(params), module, line, index - 1)
     previous = trace.get(code_name)
     if previous:
         if previous.erp_parameters == params:
@@ -67,10 +68,12 @@ def mh_query(model, pred, val, samples_count, lag=1):
     prev_name_idx = 0
     transitions = 0
     rejected = 0
+    miss = True
     while len(samples) < samples_count:
         iteration += 1
         variables = trace.names()
         # index = random.randint(0, len(variables) - 1)
+        # selected_name = variables[index]
         selected_name = variables[prev_name_idx % len(trace.names())]
         prev_name_idx += 1
         current = trace.get(selected_name)
@@ -89,12 +92,17 @@ def mh_query(model, pred, val, samples_count, lag=1):
         sample = model()
         trace = old_trace
         probability = log(uniform())
+        # print sample
         # print new_trace._likelihood, old_trace._likelihood
-        if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb:
+        if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb and \
+                (miss or pred(sample)):
+            if pred(sample):
+                miss = False
             transitions += 1
             if (transitions % lag) == 0:
-                # print len(samples), sample, new_trace._likelihood, rejected
-                samples.append(val(sample))
+                if not miss:
+                    # print len(samples), sample, new_trace._likelihood, rejected
+                    samples.append(val(sample))
             rejected = 0
             trace = new_trace
             trace.clean(iteration)

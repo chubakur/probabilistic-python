@@ -10,12 +10,12 @@ import ppl.mh
 
 
 def model():
-    threshold = 0.1
-    a = flip(threshold)
-    b = flip(threshold)
-    c = flip(threshold)
+    threshold = 0.01
+    a = flip(threshold, name='m1a')
+    b = flip(threshold, name='m1b')
+    c = flip(threshold, name='m1c')
     d = a + b + c
-    return d
+    return [a, b, c, d]
 
 
 def model2():
@@ -46,20 +46,28 @@ def flip(a=0.5, **kwargs):
     return uniform(**kwargs) < a
 
 
+def geometric(p):
+    cont = flip(p)
+    if cont:
+        return 1 + geometric(p)
+    return 0
+    # return (geometric(p) + 1) if flip(p) else 0
+
+
 if __name__ == '__main__':
-    _model = model4
+    _model = model
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
+    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[3] >= 2, lambda x: x[0]), 1000)
     delta = time() - begin
     print 'Rejection-query-min:', delta
-    begin = time()
-    samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
-    delta = time() - begin
-    print 'Rejection-query:', delta
+    # begin = time()
+    # samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
+    # delta = time() - begin
+    # print 'Rejection-query:', delta
     begin = time()
     # import cProfile
     # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, lambda x: True, lambda x: x, 1000, 50)
+    samples_mh = mh_query(_model, lambda x: x[3] >= 2, lambda x: x[0], 1000, 1)
     # samples_mh = [1, 2]
     delta = time() - begin
     print 'MH-query:', delta
@@ -67,13 +75,13 @@ if __name__ == '__main__':
     # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 100)
     # delta = time() - begin
     # print 'MH-query2:', delta
-    bins = 50
+    bins = 5
     plot.figure(1)
     plot.title("IDEAL")
     plot.hist(samples_rejection_min, bins=bins)
-    plot.figure(2)
-    plot.title("RQmin")
-    plot.hist(samples_rejection, bins=bins)
+    # plot.figure(2)
+    # plot.title("RQmin")
+    # plot.hist(samples_rejection, bins=bins)
     plot.figure(3)
     plot.title("Gibbs")
     plot.hist(samples_mh, bins=bins)

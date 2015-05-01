@@ -87,6 +87,9 @@ class UniformERP(ERP):
             return -log(b - a)
         return -float("inf")
 
+    def proposal_kernel(self, x, *parameters):
+        return numpy.random.normal(x, mh.drift)
+
 
 class GaussianERP(ERP):
     def __init__(self):
