@@ -17,6 +17,15 @@ def model():
     d = a + b + c
     return [a, b, c, d]
 
+def model1Plus():
+    threshold = 0.01
+    a = flip(threshold, name='m1pa')
+    b = flip(threshold, name='m1pb')
+    c = flip(threshold, name='m1pc')
+    d = flip(threshold, name='m1pd')
+    e = a + b + c + d
+    return [a, b, c, d, e]
+
 
 def model2():
     threshold = 0.1
@@ -55,9 +64,9 @@ def geometric(p):
 
 
 if __name__ == '__main__':
-    _model = model
+    _model = model1Plus
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[3] >= 2, lambda x: x[0]), 1000)
+    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[4] >= 3, lambda x: x[0]), 1000)
     delta = time() - begin
     print 'Rejection-query-min:', delta
     # begin = time()
@@ -67,7 +76,7 @@ if __name__ == '__main__':
     begin = time()
     # import cProfile
     # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, lambda x: x[3] >= 2, lambda x: x[0], 1000, 10)
+    samples_mh = mh_query(_model, lambda x: x[4] >= 3, lambda x: x[0], 1000, 10)
     # samples_mh = [1, 2]
     delta = time() - begin
     print 'MH-query:', delta
