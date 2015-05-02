@@ -4,7 +4,7 @@ from copy import deepcopy
 
 
 class Chunk:
-    def __init__(self, erp, x, erp_parameters):
+    def __init__(self, erp, x, erp_parameters, drift=0.1):
         """
         :param erp:
         :type erp: ERP
@@ -15,6 +15,7 @@ class Chunk:
         self.erp = erp
         self.x = x
         self.erp_parameters = erp_parameters
+        self.drift = drift
 
 
 class Trace:
@@ -65,14 +66,14 @@ class Trace:
         """
         result = dict()
         for name, chunk in self.mem.items():
-            result[name] = chunk[0].x
+            result[name] = chunk[0].x, chunk[0].drift
         return result
 
     def set_vector(self, vector, iteration):
         for name, value in vector.items():
-            chunk, _ = self.mem[name]
-            self.mem[name] = chunk, iteration
-            chunk.x = value
+            old_chunk, _ = self.mem[name]
+            new_chunk = Chunk(old_chunk.erp, value, old_chunk.erp_parameters, drift=old_chunk.drift)
+            self.mem[name] = new_chunk, iteration
 
     def store(self, name, chunk, iteration=0):
         """

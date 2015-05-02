@@ -121,7 +121,7 @@ def mh_query2(model, samples_count, lag=1):
     :return: samples
     :rtype: list
     """
-    global mh_flag, trace, iteration
+    global mh_flag, trace, iteration, drift
     mh_flag = True
     iteration = 0
     samples = []
@@ -134,25 +134,37 @@ def mh_query2(model, samples_count, lag=1):
     transitions = 0
     while len(samples) < samples_count:
         iteration += 1
-        new_trace = Trace(trace)
         variables = trace.get_vector()
-        vector = variables.values()
-        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag([drift] * len(vector)))
+        vector_vals_drift = variables.values()
+        vector = [val[0] for val in vector_vals_drift]
+        drifts = [val[1] for val in vector_vals_drift]
+        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag(drifts))
+        new_trace = Trace(trace)
         new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
         old_trace = trace
         trace = new_trace
         sample, pred, answer = model()
+        while not miss and new_trace._likelihood == -float("inf"):
+            new_trace.clean(iteration)
+            new_trace._likelihood = 0
+            for name, (chunk, iteration) in new_trace.mem.items():
+                if chunk.erp.log_likelihood(chunk.x, *chunk.erp_parameters) == -float("inf"):
+                    new_chunk = Chunk(chunk.erp,
+                                      numpy.random.normal(old_trace.get(name).x, chunk.drift / 2),
+                                      chunk.erp_parameters,
+                                      drift=chunk.drift)
+                    new_trace.store(name, new_chunk, iteration)
+            model()
         trace = old_trace
         probability = log(uniform())
         # r = erp.log_proposal_prob()
         if probability < new_trace._likelihood - old_trace._likelihood and (miss or pred(*sample)):
-            print sample
             if miss and pred(*sample):
                 miss = False
+                drift = 0.05
             transitions += 1
             if (transitions % lag) == 0:
                 if not miss:
-                    print 'ap'
                     samples.append(answer)
             trace = new_trace
             trace.clean(iteration)
