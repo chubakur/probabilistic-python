@@ -165,6 +165,7 @@ def mh_query2(model, samples_count, lag=1):
             transitions += 1
             if (transitions % lag) == 0:
                 if not miss:
+                    # print len(samples)
                     samples.append(answer)
             trace = new_trace
             trace.clean(iteration)

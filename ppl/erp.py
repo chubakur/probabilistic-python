@@ -1,6 +1,6 @@
 import numpy.random
 from utils import repeat
-from matplotlib import pyplot as plot
+# from matplotlib import pyplot as plot
 from functools import partial
 from math import sqrt, exp, pi, log
 import mh
