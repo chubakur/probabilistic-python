@@ -10,12 +10,27 @@ import ppl.mh
 
 
 def model():
+    def good(a, b, c, d):
+        return d >= 2
+
     threshold = 0.01
     a = flip(threshold, name='m1a')
     b = flip(threshold, name='m1b')
     c = flip(threshold, name='m1c')
     d = a + b + c
-    return [a, b, c, d]
+    return [a, b, c, d], good, a
+
+
+def model1p():
+    def good(a, b, c, d, e):
+        return e >= 3
+    threshold = 0.01
+    a = flip(threshold, name='m1pa')
+    b = flip(threshold, name='m1pb')
+    c = flip(threshold, name='m1pc')
+    d = flip(threshold, name='m1pd')
+    e = a + b + c + d
+    return [a, b, c, d, e], good, a
 
 
 def model2():
@@ -57,35 +72,21 @@ def geometric(p):
 if __name__ == '__main__':
     _model = model
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[3] >= 2, lambda x: x[0]), 1000)
+    samples_rejection_min = repeat(partial(rejection_query, _model), 1000)
     delta = time() - begin
     print 'Rejection-query-min:', delta
-    # begin = time()
-    # samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
-    # delta = time() - begin
-    # print 'Rejection-query:', delta
     begin = time()
     # import cProfile
     # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, lambda x: x[3] >= 2, lambda x: x[0], 1000, 10)
+    samples_mh = mh_query(_model, 1000, 10)
     # samples_mh = [1, 2]
     delta = time() - begin
     print 'MH-query:', delta
-    # begin = time()
-    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 100)
-    # delta = time() - begin
-    # print 'MH-query2:', delta
     bins = 2
     plot.figure(1)
-    plot.title("IDEAL")
+    plot.title("Rejection")
     plot.hist(samples_rejection_min, bins=bins)
-    # plot.figure(2)
-    # plot.title("RQmin")
-    # plot.hist(samples_rejection, bins=bins)
     plot.figure(3)
     plot.title("Gibbs")
     plot.hist(samples_mh, bins=bins)
-    # plot.figure(4)
-    # plot.title("MHQ")
-    # plot.hist(samples_mh2, bins=bins)
     plot.show()
