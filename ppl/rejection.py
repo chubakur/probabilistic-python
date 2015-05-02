@@ -1,7 +1,7 @@
 from ppl.interpretator import *
 
 
-def rejection_query(model):
+def rejection_query(model, predicat, answer):
     """
     Simple rejection query implementation
     :param model:
@@ -10,6 +10,6 @@ def rejection_query(model):
     :return:
     """
     while True:
-        samples, predicat, answer = model()
-        if predicat(*samples):
-            return answer
+        samples = model()
+        if predicat(samples):
+            return answer(samples)

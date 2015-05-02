@@ -47,7 +47,7 @@ def trace_update(erp, name, *params):
         return x
 
 
-def mh_query(model, samples_count, lag=1):
+def mh_query(model, pred, answer, samples_count, lag=1):
     """
     Metropolis-Hastings algorithm for sampling
     :param model: model to execute
@@ -89,20 +89,20 @@ def mh_query(model, samples_count, lag=1):
         new_trace.store(selected_name, Chunk(erp, new_value, erp_params), iteration)
         old_trace = trace
         trace = new_trace
-        sample, pred, answer = model()
+        sample = model()
         trace = old_trace
         probability = log(uniform())
         # print sample
         # print new_trace._likelihood, old_trace._likelihood
         if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb and \
-                (miss or pred(*sample)):
-            if miss and pred(*sample):
+                (miss or pred(sample)):
+            if miss and pred(sample):
                 miss = False
             transitions += 1
             if (transitions % lag) == 0:
                 if not miss:
                     # print len(samples), sample, new_trace._likelihood, rejected
-                    samples.append(answer)
+                    samples.append(answer(sample))
             rejected = 0
             trace = new_trace
             trace.clean(iteration)
@@ -112,7 +112,7 @@ def mh_query(model, samples_count, lag=1):
     return samples
 
 
-def mh_query2(model, samples_count, lag=1):
+def mh_query2(model, pred, answer, samples_count, lag=1):
     """
     Metropolis-Hastings algorithm for sampling
     :param model: model to execute
@@ -143,7 +143,7 @@ def mh_query2(model, samples_count, lag=1):
         new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
         old_trace = trace
         trace = new_trace
-        sample, pred, answer = model()
+        sample = model()
         while not miss and new_trace._likelihood == -float("inf"):
             new_trace.clean(iteration)
             new_trace._likelihood = 0
@@ -154,19 +154,19 @@ def mh_query2(model, samples_count, lag=1):
                                       chunk.erp_parameters,
                                       drift=chunk.drift)
                     new_trace.store(name, new_chunk, iteration)
-            model()
+            sample = model()
         trace = old_trace
         probability = log(uniform())
         # r = erp.log_proposal_prob()
-        if probability < new_trace._likelihood - old_trace._likelihood and (miss or pred(*sample)):
-            if miss and pred(*sample):
+        if probability < new_trace._likelihood - old_trace._likelihood and (miss or pred(sample)):
+            if miss and pred(sample):
                 miss = False
                 drift = 0.05
             transitions += 1
             if (transitions % lag) == 0:
                 if not miss:
                     # print len(samples)
-                    samples.append(answer)
+                    samples.append(answer(sample))
             trace = new_trace
             trace.clean(iteration)
 

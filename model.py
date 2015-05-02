@@ -2,7 +2,7 @@
 from ppl.erp import *
 from ppl.utils import repeat
 from ppl.rejection import *
-# from matplotlib import pyplot as plot
+from matplotlib import pyplot as plot
 from functools import partial
 from ppl.mh import mh_query, mh_query2
 from time import time
@@ -10,28 +10,22 @@ import ppl.mh
 
 
 def model():
-    def good(a, b, c, d):
-        return d >= 2
-
     threshold = 0.01
     a = flip(threshold, name='m1a')
     b = flip(threshold, name='m1b')
     c = flip(threshold, name='m1c')
     d = a + b + c
-    return [a, b, c, d], good, a
+    return [a, b, c, d]
 
 
 def model1p():
-    def good(a, b, c, d, e):
-        return e >= 3
-
     threshold = 0.01
     a = flip(threshold, name='m1pa')
     b = flip(threshold, name='m1pb')
     c = flip(threshold, name='m1pc')
     d = flip(threshold, name='m1pd')
     e = a + b + c + d
-    return [a, b, c, d, e], good, a
+    return [a, b, c, d, e]
 
 
 def model2():
@@ -63,37 +57,51 @@ def flip(a=0.5, **kwargs):
 
 
 def geometric(p):
-    cont = flip(p)
-    if cont:
-        return 1 + geometric(p)
-    return 0
-    # return (geometric(p) + 1) if flip(p) else 0
+    return (geometric(p) + 1) if flip(p) else 0
+
+
+# def pred(sample):
+#     return True
+#
+#
+# def answer(sample):
+#     return sample
+
+
+def pred(sample):
+    a, b, c, d, e = sample
+    return e >= 3
+
+
+def answer(sample):
+    a, b, c, d, e = sample
+    return a
 
 
 if __name__ == '__main__':
     _model = model1p
     begin = time()
-    samples_rejection_min = repeat(partial(rejection_query, _model), 1000)
-    # samples_rejection_min = [1, 2]
+    # samples_rejection_min = repeat(partial(rejection_query, _model, pred, answer), 1000)
+    samples_rejection_min = [1, 2]
     delta = time() - begin
     print 'Rejection-query-min:', delta, len(filter(lambda x: x, samples_rejection_min)) / float(
         len(samples_rejection_min))
     begin = time()
-    samples_gibbs = mh_query(_model, 1000, 10)
+    samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
     delta = time() - begin
     print 'Gibbs-query:', delta, len(filter(lambda x: x, samples_gibbs)) / float(len(samples_gibbs))
-    begin = time()
-    samples_mh = mh_query2(_model, 1000, 1)
-    delta = time() - begin
-    print 'MH-query:', delta, len(filter(lambda x: x, samples_mh)) / float(len(samples_mh))
+    # begin = time()
+    # samples_mh = mh_query2(_model, pred, answer, 1000, 1)
+    # delta = time() - begin
+    # print 'MH-query:', delta, len(filter(lambda x: x, samples_mh)) / float(len(samples_mh))
     # bins = 2
-    # plot.figure(1)
-    # plot.title("Rejection")
-    # plot.hist(samples_rejection_min, bins=bins)
-    # plot.figure(3)
-    # plot.title("Gibbs")
-    # plot.hist(samples_gibbs, bins=bins)
+    plot.figure(1)
+    plot.title("Rejection")
+    plot.hist(samples_rejection_min, bins=5)
+    plot.figure(3)
+    plot.title("Gibbs")
+    plot.hist(samples_gibbs, bins=5)
     # plot.figure(5)
     # plot.title("Metropolis-Hastings")
     # plot.hist(samples_mh, bins=bins)
-    # plot.show()
+    plot.show()
