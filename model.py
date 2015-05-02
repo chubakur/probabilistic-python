@@ -76,10 +76,11 @@ if __name__ == '__main__':
     delta = time() - begin
     print 'Rejection-query-min:', delta
     begin = time()
-    # import cProfile
-    # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, 1000, 10)
-    # samples_mh = [1, 2]
+    samples_gibbs = mh_query(_model, 1000, 10)
+    delta = time() - begin
+    print 'Gibbs-query:', delta
+    begin = time()
+    samples_mh = mh_query2(_model, 1000, 10)
     delta = time() - begin
     print 'MH-query:', delta
     bins = 2
@@ -88,5 +89,8 @@ if __name__ == '__main__':
     plot.hist(samples_rejection_min, bins=bins)
     plot.figure(3)
     plot.title("Gibbs")
+    plot.hist(samples_gibbs, bins=bins)
+    plot.figure(5)
+    plot.title("Metropolis-Hastings")
     plot.hist(samples_mh, bins=bins)
     plot.show()

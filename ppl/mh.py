@@ -112,7 +112,7 @@ def mh_query(model, samples_count, lag=1):
     return samples
 
 
-def mh_query2(model, pred, val, samples_count, lag=1):
+def mh_query2(model, samples_count, lag=1):
     """
     Metropolis-Hastings algorithm for sampling
     :param model: model to execute
@@ -125,6 +125,7 @@ def mh_query2(model, pred, val, samples_count, lag=1):
     mh_flag = True
     iteration = 0
     samples = []
+    miss = True
     for i in range(0, 100):
         trace._likelihood = 0
         trace.clean(iteration)
@@ -133,23 +134,26 @@ def mh_query2(model, pred, val, samples_count, lag=1):
     transitions = 0
     while len(samples) < samples_count:
         iteration += 1
-        new_trace = deepcopy(trace)
+        new_trace = Trace(trace)
         variables = trace.get_vector()
         vector = variables.values()
         shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag([drift] * len(vector)))
         new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
         old_trace = trace
         trace = new_trace
-        new_trace._likelihood = 0
-        sample = model()
+        sample, pred, answer = model()
         trace = old_trace
         probability = log(uniform())
         # r = erp.log_proposal_prob()
-        if probability < new_trace._likelihood - old_trace._likelihood:
+        if probability < new_trace._likelihood - old_trace._likelihood and (miss or pred(*sample)):
+            print sample
+            if miss and pred(*sample):
+                miss = False
             transitions += 1
             if (transitions % lag) == 0:
-                print len(samples)
-                samples.append(val(sample))
+                if not miss:
+                    print 'ap'
+                    samples.append(answer)
             trace = new_trace
             trace.clean(iteration)
 
