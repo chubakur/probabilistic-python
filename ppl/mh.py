@@ -60,14 +60,11 @@ def mh_query(model, pred, answer, samples_count, lag=1):
     mh_flag = True
     iteration = 0
     samples = []
-    for i in range(0, 100):
-        trace._likelihood = 0
-        trace.clean(iteration)
-        iteration += 1
-        model()
+    model()
     prev_name_idx = 0
     transitions = 0
     rejected = 0
+    burn_in = 100
     miss = True
     while len(samples) < samples_count:
         iteration += 1
@@ -99,8 +96,10 @@ def mh_query(model, pred, answer, samples_count, lag=1):
             if miss and pred(sample):
                 miss = False
             transitions += 1
-            if (transitions % lag) == 0:
-                if not miss:
+            if not miss:
+                if burn_in:
+                    burn_in -= 1
+                elif (transitions % lag) == 0:
                     # print len(samples), sample, new_trace._likelihood, rejected
                     samples.append(answer(sample))
             rejected = 0
