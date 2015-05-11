@@ -57,7 +57,7 @@ def flip(a=0.5, **kwargs):
 
 
 def geometric(p):
-    return (geometric(p) + 1) if flip(p) else 0
+    return 0 if flip(p) else (geometric(p) + 1)
 
 
 # def pred(sample):
@@ -69,44 +69,42 @@ def geometric(p):
 
 
 def pred(sample):
-    a, b, c, d = sample
-    return d >= 2
+    return True
 
 
 def answer(sample):
-    a, b, c, d = sample
-    return a
+    return sample
 
 
 if __name__ == '__main__':
-    _model = model
+    _model = partial(geometric, 0.6)
     begin = time()
-    # samples_rejection_min = repeat(partial(rejection_query, _model, pred, answer), 1000)
-    samples_rejection_min = [1, 2]
+    samples_rejection_min = repeat(partial(rejection_query, _model, pred, answer), 10000)
+    # samples_rejection_min = [1, 2]
     delta = time() - begin
     print 'Rejection-query-min:', delta, len(filter(lambda x: x, samples_rejection_min)) / float(
         len(samples_rejection_min))
-    doles = []
-    for i in range(0, 100):
-        begin = time()
-        samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
-        delta = time() - begin
-        d = len(filter(lambda x: x, samples_gibbs)) / float(len(samples_gibbs))
-        print 'Gibbs-query:', delta, d
-        doles.append(d)
-    print min(doles), max(doles), sum(doles) / len(doles)
+    # doles = []
+    # for i in range(0, 100):
+    #     begin = time()
+    #     samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
+    #     delta = time() - begin
+    #     d = len(filter(lambda x: x, samples_gibbs)) / float(len(samples_gibbs))
+    #     print 'Gibbs-query:', delta, d
+    #     doles.append(d)
+    # print min(doles), max(doles), sum(doles) / len(doles)
     # begin = time()
     # samples_mh = mh_query2(_model, pred, answer, 1000, 1)
     # delta = time() - begin
     # print 'MH-query:', delta, len(filter(lambda x: x, samples_mh)) / float(len(samples_mh))
-    # bins = 2
-    # plot.figure(1)
-    # plot.title("Rejection")
-    # plot.hist(samples_rejection_min, bins=5)
+    bins = 2
+    plot.figure(1)
+    plot.title("Rejection")
+    plot.hist(samples_rejection_min)
     # plot.figure(3)
     # plot.title("Gibbs")
     # plot.hist(samples_gibbs, bins=5)
     # plot.figure(5)
     # plot.title("Metropolis-Hastings")
     # plot.hist(samples_mh, bins=bins)
-    # plot.show()
+    plot.show()
