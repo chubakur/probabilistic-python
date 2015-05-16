@@ -7,10 +7,12 @@ import numpy
 import numpy.random
 import random
 
-mh_flag = False
-iteration = 0
-trace = Trace()
-drift = 0.1
+
+class MCMC_shared:
+    mh_flag = False
+    iteration = 0
+    trace = Trace()
+    drift = 0.1
 
 
 def trace_update(erp, name, *params):
@@ -20,7 +22,6 @@ def trace_update(erp, name, *params):
     :param params:
     :return:
     """
-    global trace, iteration
     code_name = name
     if not code_name:
         stack = inspect.stack()
@@ -30,24 +31,24 @@ def trace_update(erp, name, *params):
                 break
         frame, fname, line, module, code, idx = stack[index - 1]
         code_name = "%s%s-%s%d+%d" % (erp.__class__.__name__, str(params), module, line, index - 1)
-    previous = trace.get(code_name)
+    previous = MCMC_shared.trace.get(code_name)
     if previous:
         if previous.erp_parameters == params:
-            trace._likelihood += erp.log_likelihood(previous.x, *params)
-            trace.update(code_name, iteration)
+            MCMC_shared.trace._likelihood += erp.log_likelihood(previous.x, *params)
+            MCMC_shared.trace.update(code_name, MCMC_shared.iteration)
         else:
             previous.erp_parameters = params
-            trace._likelihood += erp.log_likelihood(previous.x, *params)
-            trace.store(code_name, previous.erp_parameters, iteration)
+            MCMC_shared.trace._likelihood += erp.log_likelihood(previous.x, *params)
+            MCMC_shared.trace.store(code_name, previous.erp_parameters, MCMC_shared.iteration)
         return previous.x
     else:
         x = erp.sample(*params)
-        trace._likelihood += erp.log_likelihood(x, *params)
-        trace.store(code_name, Chunk(erp, x, params), iteration)
+        MCMC_shared.trace._likelihood += erp.log_likelihood(x, *params)
+        MCMC_shared.trace.store(code_name, Chunk(erp, x, params), MCMC_shared.iteration)
         return x
 
 
-def mh_query(model, pred, val, samples_count, lag=1):
+def mh_query(model, pred, answer, samples_count, lag=1):
     """
     Metropolis-Hastings algorithm for sampling
     :param model: model to execute
@@ -56,27 +57,23 @@ def mh_query(model, pred, val, samples_count, lag=1):
     :return: samples
     :rtype: list
     """
-    global mh_flag, trace, iteration
-    mh_flag = True
-    iteration = 0
+    MCMC_shared.mh_flag = True
+    MCMC_shared.iteration = 0
     samples = []
-    for i in range(0, 1000):
-        trace._likelihood = 0
-        trace.clean(iteration)
-        iteration += 1
-        model()
+    model()
     prev_name_idx = 0
     transitions = 0
     rejected = 0
+    burn_in = 100
     miss = True
     while len(samples) < samples_count:
-        iteration += 1
-        variables = trace.names()
+        MCMC_shared.iteration += 1
+        variables = MCMC_shared.trace.names()
         # index = random.randint(0, len(variables) - 1)
         # selected_name = variables[index]
-        selected_name = variables[prev_name_idx % len(trace.names())]
+        selected_name = variables[prev_name_idx % len(MCMC_shared.trace.names())]
         prev_name_idx += 1
-        current = trace.get(selected_name)
+        current = MCMC_shared.trace.get(selected_name)
         erp, erp_params = current.erp, current.erp_parameters
         new_value = erp.proposal_kernel(current.x, *erp_params)
         # print erp_params
@@ -85,34 +82,36 @@ def mh_query(model, pred, val, samples_count, lag=1):
         # r и f для flip == 0
         # l = erp.log_likelihood(new_value, *erp_params)
         # new_trace = deepcopy(trace)
-        new_trace = Trace(trace)
-        new_trace.store(selected_name, Chunk(erp, new_value, erp_params), iteration)
-        old_trace = trace
-        trace = new_trace
+        new_trace = Trace(MCMC_shared.trace)
+        new_trace.store(selected_name, Chunk(erp, new_value, erp_params), MCMC_shared.iteration)
+        old_trace = MCMC_shared.trace
+        MCMC_shared.trace = new_trace
         sample = model()
-        trace = old_trace
+        MCMC_shared.trace = old_trace
         probability = log(uniform())
         # print sample
         # print new_trace._likelihood, old_trace._likelihood
         if probability < new_trace._likelihood - old_trace._likelihood + rvsProb - fwdProb and \
                 (miss or pred(sample)):
-            if pred(sample):
+            if miss and pred(sample):
                 miss = False
             transitions += 1
-            if (transitions % lag) == 0:
-                if not miss:
+            if not miss:
+                if burn_in:
+                    burn_in -= 1
+                elif (transitions % lag) == 0:
                     # print len(samples), sample, new_trace._likelihood, rejected
-                    samples.append(val(sample))
+                    samples.append(answer(sample))
             rejected = 0
-            trace = new_trace
-            trace.clean(iteration)
+            MCMC_shared.trace = new_trace
+            MCMC_shared.trace.clean(MCMC_shared.iteration)
         else:
             rejected += 1
 
     return samples
 
 
-def mh_query2(model, pred, val, samples_count, lag=1):
+def mh_query2(model, pred, answer, samples_count, lag=1):
     """
     Metropolis-Hastings algorithm for sampling
     :param model: model to execute
@@ -121,36 +120,48 @@ def mh_query2(model, pred, val, samples_count, lag=1):
     :return: samples
     :rtype: list
     """
-    global mh_flag, trace, iteration
-    mh_flag = True
-    iteration = 0
+    MCMC_shared.mh_flag = True
+    MCMC_shared.iteration = 0
     samples = []
-    for i in range(0, 100):
-        trace._likelihood = 0
-        trace.clean(iteration)
-        iteration += 1
-        model()
+    miss = True
+    model()
     transitions = 0
     while len(samples) < samples_count:
-        iteration += 1
-        new_trace = deepcopy(trace)
-        variables = trace.get_vector()
-        vector = variables.values()
-        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag([drift] * len(vector)))
+        MCMC_shared.iteration += 1
+        variables = MCMC_shared.trace.get_vector()
+        vector_vals_drift = variables.values()
+        vector = [val[0] for val in vector_vals_drift]
+        drifts = [val[1] for val in vector_vals_drift]
+        shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag(drifts))
+        new_trace = Trace(MCMC_shared.trace)
         new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
-        old_trace = trace
-        trace = new_trace
-        new_trace._likelihood = 0
+        old_trace = MCMC_shared.trace
+        MCMC_shared.trace = new_trace
         sample = model()
-        trace = old_trace
+        while not miss and new_trace._likelihood == -float("inf"):
+            new_trace.clean(MCMC_shared.iteration)
+            new_trace._likelihood = 0
+            for name, (chunk, iteration) in new_trace.mem.items():
+                if chunk.erp.log_likelihood(chunk.x, *chunk.erp_parameters) == -float("inf"):
+                    new_chunk = Chunk(chunk.erp,
+                                      numpy.random.normal(old_trace.get(name).x, chunk.drift / 2),
+                                      chunk.erp_parameters,
+                                      drift=chunk.drift)
+                    new_trace.store(name, new_chunk, iteration)
+            sample = model()
+        MCMC_shared.trace = old_trace
         probability = log(uniform())
         # r = erp.log_proposal_prob()
-        if probability < new_trace._likelihood - old_trace._likelihood:
+        if probability < new_trace._likelihood - old_trace._likelihood and (miss or pred(sample)):
+            if miss and pred(sample):
+                miss = False
+                MCMC_shared.drift = 0.05
             transitions += 1
             if (transitions % lag) == 0:
-                print len(samples)
-                samples.append(val(sample))
-            trace = new_trace
-            trace.clean(iteration)
+                if not miss:
+                    # print len(samples)
+                    samples.append(answer(sample))
+            MCMC_shared.trace = new_trace
+            MCMC_shared.trace.clean(MCMC_shared.iteration)
 
     return samples

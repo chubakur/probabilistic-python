@@ -23,13 +23,19 @@ Z = 0.4 * Z1 + 0.6 * Z2
 Q = stats.multivariate_normal([0, 0], [[0.05, 0], [0, 0.05]])
 r = [0, 0]
 samples = [r]
+# z1s = [z1.rvs() for i in range(0, 10000)]
+
 for i in range(0, 1000):
-    random = Q.rvs()
-    # random *= [1, 0] if i % 2 == 0 else [0, 1]
+    # random = Q.rvs()
+    single_random = np.random.normal(0, 0.5)
+    random = np.zeros((len(r), ))
+    random[0] = single_random
+    np.random.shuffle(random)
     rq = random + r
     a = z(rq) / z(r)
     if np.random.binomial(1, min(a, 1), 1)[0] == 1:
-    # if random.random() < min(a, 1):
+        # if z1.pdf(rq) > 0 and z2.pdf(rq) > 0:
+        # print z1.pdf(rq), z2.pdf(rq)
         r = rq
         samples.append(r)
 
@@ -37,6 +43,8 @@ codes = np.ones(len(samples), int) * path.Path.LINETO
 codes[0] = path.Path.MOVETO
 
 p = path.Path(samples, codes)
+
+# plt.contour(X, Y, Z)
 
 fig, ax = plt.subplots()
 ax.contour(X, Y, Z)

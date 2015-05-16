@@ -88,7 +88,7 @@ class UniformERP(ERP):
         return -float("inf")
 
     def proposal_kernel(self, x, *parameters):
-        return numpy.random.normal(x, mh.drift)
+        return numpy.random.normal(x, mh.MCMC_shared.drift)
 
 
 class GaussianERP(ERP):
@@ -197,7 +197,7 @@ def sample(erp, name=None, *params):
     :param params:
     :return:
     """
-    if mh.mh_flag:
+    if mh.MCMC_shared.mh_flag:
         return mh.trace_update(erp, name, *params)
     return erp.sample(*params)
 

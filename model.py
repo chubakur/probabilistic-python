@@ -7,9 +7,6 @@ from functools import partial
 from ppl.mh import mh_query, mh_query2
 from time import time
 import ppl.mh
-# from embed.emb import import_mod
-
-# plot = import_mod('matplotlib.pyplot')
 
 
 def model():
@@ -21,7 +18,7 @@ def model():
     return [a, b, c, d]
 
 
-def model1Plus():
+def model1p():
     threshold = 0.01
     a = flip(threshold, name='m1pa')
     b = flip(threshold, name='m1pb')
@@ -60,46 +57,57 @@ def flip(a=0.5, **kwargs):
 
 
 def geometric(p):
-    cont = flip(p)
-    if cont:
-        return 1 + geometric(p)
-    return 0
-    # return (geometric(p) + 1) if flip(p) else 0
+    return 0 if flip(p) else (geometric(p) + 1)
+
+
+# def pred(sample):
+#     return True
+#
+#
+# def answer(sample):
+#     return sample
+
+
+def pred(sample):
+    a, b, c, d = sample
+    return d >= 2
+
+
+def answer(sample):
+    a, b, c, d = sample
+    return a
 
 
 if __name__ == '__main__':
-    _model = model1Plus
-    begin = time()
-    # samples_rejection_min = repeat(partial(rejection_query, _model, lambda x: x[4] >= 3, lambda x: x[0]), 1000)
-    samples_rejection_min = [1, 2]
-    delta = time() - begin
-    print 'Rejection-query-min:', delta
+    _model = model
     # begin = time()
-    # samples_rejection = repeat(partial(rejection_query, _model, lambda x: True, lambda x: x), 1000)
+    # samples_rejection_min = repeat(partial(rejection_query, _model, pred, answer), 10000)
+    # samples_rejection_min = [1, 2]
     # delta = time() - begin
-    # print 'Rejection-query:', delta
-    begin = time()
-    # import cProfile
-    # cProfile.run("mh_query(_model, lambda x: True, lambda x: x, 10000, 1)")
-    samples_mh = mh_query(_model, lambda x: x[4] >= 3, lambda x: x[0], 1000, 10)
-    # samples_mh = [1, 2]
-    delta = time() - begin
-    print 'MH-query:', delta
+    # print 'Rejection-query-min:', delta, len(filter(lambda x: x, samples_rejection_min)) / float(
+    #     len(samples_rejection_min))
+    # doles = []
+    samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
+    # for i in range(0, 100):
+    #     begin = time()
+    #     samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
+    #     delta = time() - begin
+    #     d = len(filter(lambda x: x, samples_gibbs)) / float(len(samples_gibbs))
+    #     print 'Gibbs-query:', delta, d
+    #     doles.append(d)
+    # print min(doles), max(doles), sum(doles) / len(doles)
     # begin = time()
-    # samples_mh2 = mh_query2(_model, lambda x: True, lambda x: x, 10000, 100)
+    # samples_mh = mh_query2(_model, pred, answer, 1000, 1)
     # delta = time() - begin
-    # print 'MH-query2:', delta
+    # print 'MH-query:', delta, len(filter(lambda x: x, samples_mh)) / float(len(samples_mh))
     bins = 2
-    plot.figure(1)
-    plot.title("IDEAL")
-    plot.hist(samples_rejection_min, bins=bins)
-    # plot.figure(2)
-    # plot.title("RQmin")
-    # plot.hist(samples_rejection, bins=bins)
+    # plot.figure(1)
+    # plot.title("Rejection")
+    # plot.hist(samples_rejection_min)
     plot.figure(3)
     plot.title("Gibbs")
-    plot.hist(samples_mh, bins=bins)
-    # plot.figure(4)
-    # plot.title("MHQ")
-    # plot.hist(samples_mh2, bins=bins)
+    plot.hist(samples_gibbs, bins=bins)
+    # plot.figure(5)
+    # plot.title("Metropolis-Hastings")
+    # plot.hist(samples_mh, bins=bins)
     plot.show()
