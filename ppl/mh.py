@@ -126,6 +126,7 @@ def mh_query2(model, pred, answer, samples_count, lag=1):
     miss = True
     model()
     transitions = 0
+    rejection = 0
     while len(samples) < samples_count:
         MCMC_shared.iteration += 1
         variables = MCMC_shared.trace.get_vector()
@@ -134,7 +135,7 @@ def mh_query2(model, pred, answer, samples_count, lag=1):
         drifts = [val[1] for val in vector_vals_drift]
         shifted_vector = numpy.random.multivariate_normal(vector, numpy.diag(drifts))
         new_trace = Trace(MCMC_shared.trace)
-        new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), iteration)
+        new_trace.set_vector(dict(zip(variables.keys(), shifted_vector.tolist())), MCMC_shared.iteration)
         old_trace = MCMC_shared.trace
         MCMC_shared.trace = new_trace
         sample = model()
@@ -159,9 +160,12 @@ def mh_query2(model, pred, answer, samples_count, lag=1):
             transitions += 1
             if (transitions % lag) == 0:
                 if not miss:
-                    # print len(samples)
+                    # print sample, rejection
                     samples.append(answer(sample))
+            rejection = 0
             MCMC_shared.trace = new_trace
             MCMC_shared.trace.clean(MCMC_shared.iteration)
+        else:
+            rejection += 1
 
     return samples

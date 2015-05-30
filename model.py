@@ -28,15 +28,6 @@ def model1p():
     return [a, b, c, d, e]
 
 
-def model2():
-    threshold = 0.1
-    a = 1 if uniform() < threshold else 0
-    b = 1 if uniform() < threshold else 0
-    c = 1 if uniform() < threshold else 0
-    d = a + b + c
-    return d
-
-
 def model3():
     if uniform() < 0.5:
         a = gaussian(10, 1)
@@ -87,7 +78,9 @@ if __name__ == '__main__':
     # print 'Rejection-query-min:', delta, len(filter(lambda x: x, samples_rejection_min)) / float(
     #     len(samples_rejection_min))
     # doles = []
+    begin = time()
     samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
+    print time() - begin
     # for i in range(0, 100):
     #     begin = time()
     #     samples_gibbs = mh_query(_model, pred, answer, 1000, 50)
